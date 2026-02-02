@@ -2,10 +2,82 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <title>Meine Website</title>
+  <title>I-Wort-Umformer</title>
+  <style>
+    body {
+      background: #111;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      padding: 40px;
+      text-align: center;
+    }
+    input {
+      padding: 12px;
+      font-size: 18px;
+      width: 280px;
+      max-width: 90%;
+    }
+    button {
+      padding: 12px 18px;
+      font-size: 18px;
+      margin-left: 8px;
+      cursor: pointer;
+    }
+    .result {
+      margin-top: 30px;
+      font-size: 30px;
+      font-weight: bold;
+    }
+    .rule {
+      margin-top: 10px;
+      color: #aaa;
+      font-size: 14px;
+    }
+  </style>
 </head>
 <body>
-  <h1>Hallo Welt 👋</h1>
-  <p>Meine GitHub-Website läuft!</p>
+
+  <h1>🔤 I-Wort-Umformer</h1>
+  <p>Jedes Wort endet hier auf <b>i</b></p>
+
+  <input id="word" placeholder="Wort eingeben">
+  <button onclick="convert()">Umformen</button>
+
+  <div class="result" id="result"></div>
+  <div class="rule" id="rule"></div>
+
+  <script>
+    function convert() {
+      let w = document.getElementById("word").value.trim();
+      if (!w) return;
+
+      let lower = w.toLowerCase();
+      let rule = "";
+
+      if (lower.endsWith("i")) {
+        rule = "Wort endet bereits auf i";
+      }
+      else if (lower.endsWith("er") || lower.endsWith("en") || lower.endsWith("el")) {
+        w = w.slice(0, -2) + "i";
+        rule = "Endung entfernt → i";
+      }
+      else if (lower.endsWith("e")) {
+        w = w.slice(0, -1) + "i";
+        rule = "e → i";
+      }
+      else if (/[aeiouäöü]$/.test(lower)) {
+        w = w.slice(0, -1) + "i";
+        rule = "Vokal → i";
+      }
+      else {
+        w += "i";
+        rule = "i angehängt";
+      }
+
+      document.getElementById("result").textContent = w;
+      document.getElementById("rule").textContent = rule;
+    }
+  </script>
+
 </body>
 </html>
