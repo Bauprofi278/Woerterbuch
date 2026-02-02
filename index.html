@@ -14,8 +14,8 @@
     input {
       padding: 12px;
       font-size: 18px;
-      width: 280px;
-      max-width: 90%;
+      width: 320px;
+      max-width: 95%;
     }
     button {
       padding: 10px 14px;
@@ -25,29 +25,38 @@
     }
     .result {
       margin-top: 25px;
-      font-size: 30px;
+      font-size: 26px;
       font-weight: bold;
+      word-wrap: break-word;
     }
     .history {
-      margin-top: 30px;
-      max-width: 400px;
+      margin-top: 35px;
+      max-width: 500px;
       margin-left: auto;
       margin-right: auto;
       text-align: left;
     }
-    .history li {
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       border-bottom: 1px solid #333;
-      padding: 4px 0;
-      font-size: 15px;
+      padding: 6px 0;
+      font-size: 14px;
+    }
+    .delete {
+      cursor: pointer;
+      color: #ff6666;
+      margin-left: 10px;
     }
   </style>
 </head>
 <body>
 
-<h1>🔤 I-Wort-Umformer</h1>
+<h1>🔤 I-Wort- & Satz-Umformer</h1>
 <p>Alle Wörter enden hier auf <b>i</b></p>
 
-<input id="word" placeholder="Wort eingeben">
+<input id="input" placeholder="Wort oder Satz eingeben">
 <br>
 
 <button onclick="convert()">Umformen</button>
@@ -58,20 +67,19 @@
 
 <div class="history">
   <h3>🕘 Verlauf</h3>
-  <ul id="history"></ul>
-  <button onclick="clearHistory()">🗑 Verlauf löschen</button>
+  <div id="history"></div>
+  <button onclick="clearHistory()">🗑 Verlauf komplett löschen</button>
 </div>
 
 <script>
-  const input = document.getElementById("word");
+  const input = document.getElementById("input");
   const resultDiv = document.getElementById("result");
-  const historyList = document.getElementById("history");
+  const historyDiv = document.getElementById("history");
 
   let history = JSON.parse(localStorage.getItem("history") || "[]");
 
-  function transform(w) {
+  function transformWord(w) {
     const lower = w.toLowerCase();
-
     if (lower.endsWith("i")) return w;
     if (lower.endsWith("er") || lower.endsWith("en") || lower.endsWith("el"))
       return w.slice(0, -2) + "i";
@@ -82,27 +90,41 @@
     return w + "i";
   }
 
-  function convert() {
-    let w = input.value.trim();
-    if (!w) return;
+  function transformSentence(text) {
+    return text.replace(/[A-Za-zÄÖÜäöüß]+/g, word => transformWord(word));
+  }
 
-    const converted = transform(w);
+  function convert() {
+    const text = input.value.trim();
+    if (!text) return;
+
+    const converted = transformSentence(text);
     resultDiv.textContent = converted;
 
-    history.unshift(`${w} → ${converted}`);
-    history = history.slice(0, 20);
+    history.unshift({ original: text, result: converted });
+    history = history.slice(0, 30);
 
     localStorage.setItem("history", JSON.stringify(history));
     renderHistory();
   }
 
   function renderHistory() {
-    historyList.innerHTML = "";
-    history.forEach(item => {
-      const li = document.createElement("li");
-      li.textContent = item;
-      historyList.appendChild(li);
+    historyDiv.innerHTML = "";
+    history.forEach((item, index) => {
+      const div = document.createElement("div");
+      div.className = "history-item";
+      div.innerHTML = `
+        <span>${item.original} → ${item.result}</span>
+        <span class="delete" onclick="deleteItem(${index})">❌</span>
+      `;
+      historyDiv.appendChild(div);
     });
+  }
+
+  function deleteItem(index) {
+    history.splice(index, 1);
+    localStorage.setItem("history", JSON.stringify(history));
+    renderHistory();
   }
 
   function clearHistory() {
@@ -121,7 +143,6 @@
     input.value = text;
   }
 
-  // Enter-Taste
   input.addEventListener("keydown", e => {
     if (e.key === "Enter") convert();
   });
