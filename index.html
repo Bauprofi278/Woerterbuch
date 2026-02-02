@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<title>Wort & Satz Umformer</title>
+<title>Wort und Satz Umformer</title>
 
 <style>
 :root {
@@ -25,7 +25,7 @@ body.mobile {
 input, select {
   padding: 12px;
   font-size: 16px;
-  width: 320px;
+  width: 340px;
   max-width: 95%;
 }
 
@@ -64,7 +64,7 @@ button {
 }
 
 .delete {
-  color: #ff6666;
+  color: #ff5555;
   cursor: pointer;
   margin-left: 10px;
 }
@@ -73,7 +73,7 @@ button {
 
 <body>
 
-<h1>🔤 Wort & Satz Umformer</h1>
+<h1>Wort- und Satz-Umformer</h1>
 
 <input id="input" placeholder="Wort oder Satz eingeben">
 <br>
@@ -82,22 +82,21 @@ button {
   <option value="i">I-Modus</option>
   <option value="u">U-Modus</option>
   <option value="o">O-Modus</option>
-  <option value="chaos">😂 Chaos-Modus</option>
+  <option value="chaos">Chaos-Modus</option>
 </select>
 <br>
 
 <button onclick="convert()">Umformen</button>
-<button onclick="pasteFromClipboard()">📥 Paste</button>
-<button onclick="copyResult()">📋 Copy</button>
-<button onclick="speak()">🔊 Vorlesen</button>
-<button onclick="toggleMobile()">📱 Handy-Layout</button>
+<button onclick="pasteFromClipboard()">Paste</button>
+<button onclick="copyResult()">Copy</button>
+<button onclick="speak()">Vorlesen</button>
 
 <div class="result" id="result"></div>
 
 <div class="history">
-  <h3>🕘 Verlauf</h3>
+  <h3>Verlauf</h3>
   <div id="history"></div>
-  <button onclick="clearHistory()">🗑 Verlauf löschen</button>
+  <button onclick="clearHistory()">Verlauf löschen</button>
 </div>
 
 <script>
@@ -107,20 +106,13 @@ const historyDiv = document.getElementById("history");
 const modeSelect = document.getElementById("mode");
 
 let history = JSON.parse(localStorage.getItem("history") || "[]");
-let mobileForced = localStorage.getItem("mobile") === "true";
 
 function isMobileDevice() {
   return /Mobi|Android|iPhone/i.test(navigator.userAgent);
 }
 
-if (isMobileDevice() || mobileForced) {
+if (isMobileDevice()) {
   document.body.classList.add("mobile");
-}
-
-function toggleMobile() {
-  mobileForced = !document.body.classList.contains("mobile");
-  document.body.classList.toggle("mobile");
-  localStorage.setItem("mobile", mobileForced);
 }
 
 function transformWord(word, mode) {
@@ -169,7 +161,7 @@ function renderHistory() {
     div.className = "history-item";
     div.innerHTML = `
       <span onclick="reuse(${i})">${item.original} → ${item.result}</span>
-      <span class="delete" onclick="deleteItem(${i})">❌</span>
+      <span class="delete" onclick="deleteItem(${i})">X</span>
     `;
     historyDiv.appendChild(div);
   });
