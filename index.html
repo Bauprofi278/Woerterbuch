@@ -1,155 +1,218 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <title>I-Wort-Umformer</title>
-  <style>
-    body {
-      background: #111;
-      color: #fff;
-      font-family: Arial, sans-serif;
-      padding: 40px;
-      text-align: center;
-    }
-    input {
-      padding: 12px;
-      font-size: 18px;
-      width: 320px;
-      max-width: 95%;
-    }
-    button {
-      padding: 10px 14px;
-      font-size: 16px;
-      margin: 6px;
-      cursor: pointer;
-    }
-    .result {
-      margin-top: 25px;
-      font-size: 26px;
-      font-weight: bold;
-      word-wrap: break-word;
-    }
-    .history {
-      margin-top: 35px;
-      max-width: 500px;
-      margin-left: auto;
-      margin-right: auto;
-      text-align: left;
-    }
-    .history-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid #333;
-      padding: 6px 0;
-      font-size: 14px;
-    }
-    .delete {
-      cursor: pointer;
-      color: #ff6666;
-      margin-left: 10px;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Wort & Satz Umformer</title>
+
+<style>
+:root {
+  --bg: #111;
+  --fg: #fff;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: Arial, sans-serif;
+  padding: 30px;
+  text-align: center;
+}
+
+body.mobile {
+  font-size: 18px;
+}
+
+input, select {
+  padding: 12px;
+  font-size: 16px;
+  width: 320px;
+  max-width: 95%;
+}
+
+button {
+  padding: 10px 14px;
+  font-size: 15px;
+  margin: 5px;
+  cursor: pointer;
+}
+
+.result {
+  margin-top: 20px;
+  font-size: 26px;
+  font-weight: bold;
+  word-wrap: break-word;
+}
+
+.history {
+  margin-top: 30px;
+  max-width: 600px;
+  margin-inline: auto;
+  text-align: left;
+}
+
+.history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #333;
+  padding: 6px 0;
+  font-size: 14px;
+}
+
+.history-item span {
+  cursor: pointer;
+}
+
+.delete {
+  color: #ff6666;
+  cursor: pointer;
+  margin-left: 10px;
+}
+</style>
 </head>
+
 <body>
 
-<h1>I-Wort- & Satz-Umformer</h1>
-<p>Alle Wörter enden hier auf <b>i</b></p>
+<h1>🔤 Wort & Satz Umformer</h1>
 
 <input id="input" placeholder="Wort oder Satz eingeben">
+<br>
+
+<select id="mode">
+  <option value="i">I-Modus</option>
+  <option value="u">U-Modus</option>
+  <option value="o">O-Modus</option>
+  <option value="chaos">😂 Chaos-Modus</option>
+</select>
 <br>
 
 <button onclick="convert()">Umformen</button>
 <button onclick="pasteFromClipboard()">📥 Paste</button>
 <button onclick="copyResult()">📋 Copy</button>
+<button onclick="speak()">🔊 Vorlesen</button>
+<button onclick="toggleMobile()">📱 Handy-Layout</button>
 
 <div class="result" id="result"></div>
 
 <div class="history">
   <h3>🕘 Verlauf</h3>
   <div id="history"></div>
-  <button onclick="clearHistory()">🗑 Verlauf komplett löschen</button>
+  <button onclick="clearHistory()">🗑 Verlauf löschen</button>
 </div>
 
 <script>
-  const input = document.getElementById("input");
-  const resultDiv = document.getElementById("result");
-  const historyDiv = document.getElementById("history");
+const input = document.getElementById("input");
+const resultDiv = document.getElementById("result");
+const historyDiv = document.getElementById("history");
+const modeSelect = document.getElementById("mode");
 
-  let history = JSON.parse(localStorage.getItem("history") || "[]");
+let history = JSON.parse(localStorage.getItem("history") || "[]");
+let mobileForced = localStorage.getItem("mobile") === "true";
 
-  function transformWord(w) {
-    const lower = w.toLowerCase();
-    if (lower.endsWith("i")) return w;
-    if (lower.endsWith("er") || lower.endsWith("en") || lower.endsWith("el"))
-      return w.slice(0, -2) + "i";
-    if (lower.endsWith("e"))
-      return w.slice(0, -1) + "i";
-    if (/[aeiouäöü]$/.test(lower))
-      return w.slice(0, -1) + "i";
-    return w + "i";
+function isMobileDevice() {
+  return /Mobi|Android|iPhone/i.test(navigator.userAgent);
+}
+
+if (isMobileDevice() || mobileForced) {
+  document.body.classList.add("mobile");
+}
+
+function toggleMobile() {
+  mobileForced = !document.body.classList.contains("mobile");
+  document.body.classList.toggle("mobile");
+  localStorage.setItem("mobile", mobileForced);
+}
+
+function transformWord(word, mode) {
+  if (mode === "chaos") {
+    return word.replace(/[aeiouäöü]/gi, "i");
   }
 
-  function transformSentence(text) {
-    return text.replace(/[A-Za-zÄÖÜäöüß]+/g, word => transformWord(word));
-  }
+  const lower = word.toLowerCase();
+  if (lower.endsWith(mode)) return word;
 
-  function convert() {
-    const text = input.value.trim();
-    if (!text) return;
+  if (lower.endsWith("er") || lower.endsWith("en") || lower.endsWith("el"))
+    return word.slice(0, -2) + mode;
 
-    const converted = transformSentence(text);
-    resultDiv.textContent = converted;
+  if (lower.endsWith("e"))
+    return word.slice(0, -1) + mode;
 
-    history.unshift({ original: text, result: converted });
-    history = history.slice(0, 30);
+  if (/[aeiouäöü]$/.test(lower))
+    return word.slice(0, -1) + mode;
 
-    localStorage.setItem("history", JSON.stringify(history));
-    renderHistory();
-  }
+  return word + mode;
+}
 
-  function renderHistory() {
-    historyDiv.innerHTML = "";
-    history.forEach((item, index) => {
-      const div = document.createElement("div");
-      div.className = "history-item";
-      div.innerHTML = `
-        <span>${item.original} → ${item.result}</span>
-        <span class="delete" onclick="deleteItem(${index})">❌</span>
-      `;
-      historyDiv.appendChild(div);
-    });
-  }
+function transformSentence(text) {
+  const mode = modeSelect.value;
+  return text.replace(/[A-Za-zÄÖÜäöüß]+/g, w => transformWord(w, mode));
+}
 
-  function deleteItem(index) {
-    history.splice(index, 1);
-    localStorage.setItem("history", JSON.stringify(history));
-    renderHistory();
-  }
+function convert() {
+  const text = input.value.trim();
+  if (!text) return;
 
-  function clearHistory() {
-    history = [];
-    localStorage.removeItem("history");
-    renderHistory();
-  }
+  const converted = transformSentence(text);
+  resultDiv.textContent = converted;
 
-  function copyResult() {
-    if (!resultDiv.textContent) return;
-    navigator.clipboard.writeText(resultDiv.textContent);
-  }
+  history.unshift({ original: text, result: converted });
+  history = history.slice(0, 40);
 
-  async function pasteFromClipboard() {
-    const text = await navigator.clipboard.readText();
-    input.value = text;
-  }
-
-  input.addEventListener("keydown", e => {
-    if (e.key === "Enter") convert();
-  });
-
+  localStorage.setItem("history", JSON.stringify(history));
   renderHistory();
+}
+
+function renderHistory() {
+  historyDiv.innerHTML = "";
+  history.forEach((item, i) => {
+    const div = document.createElement("div");
+    div.className = "history-item";
+    div.innerHTML = `
+      <span onclick="reuse(${i})">${item.original} → ${item.result}</span>
+      <span class="delete" onclick="deleteItem(${i})">❌</span>
+    `;
+    historyDiv.appendChild(div);
+  });
+}
+
+function reuse(i) {
+  input.value = history[i].original;
+}
+
+function deleteItem(i) {
+  history.splice(i, 1);
+  localStorage.setItem("history", JSON.stringify(history));
+  renderHistory();
+}
+
+function clearHistory() {
+  history = [];
+  localStorage.removeItem("history");
+  renderHistory();
+}
+
+function copyResult() {
+  if (resultDiv.textContent)
+    navigator.clipboard.writeText(resultDiv.textContent);
+}
+
+async function pasteFromClipboard() {
+  input.value = await navigator.clipboard.readText();
+}
+
+function speak() {
+  if (!resultDiv.textContent) return;
+  const u = new SpeechSynthesisUtterance(resultDiv.textContent);
+  u.lang = "de-DE";
+  speechSynthesis.speak(u);
+}
+
+input.addEventListener("keydown", e => {
+  if (e.key === "Enter") convert();
+});
+
+renderHistory();
 </script>
 
 </body>
 </html>
-
