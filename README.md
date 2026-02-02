@@ -1,2 +1,5 @@
-# Woerterbuch
-Ein Wörterbuch (Troll)
+Deutsch
+Wowi
+Typi
+Grupi
+
