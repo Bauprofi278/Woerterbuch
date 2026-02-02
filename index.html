@@ -18,66 +18,116 @@
       max-width: 90%;
     }
     button {
-      padding: 12px 18px;
-      font-size: 18px;
-      margin-left: 8px;
+      padding: 10px 14px;
+      font-size: 16px;
+      margin: 6px;
       cursor: pointer;
     }
     .result {
-      margin-top: 30px;
+      margin-top: 25px;
       font-size: 30px;
       font-weight: bold;
     }
-    .rule {
-      margin-top: 10px;
-      color: #aaa;
-      font-size: 14px;
+    .history {
+      margin-top: 30px;
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+      text-align: left;
+    }
+    .history li {
+      border-bottom: 1px solid #333;
+      padding: 4px 0;
+      font-size: 15px;
     }
   </style>
 </head>
 <body>
 
-  <h1>🔤 I-Wort-Umformer</h1>
-  <p>Jedes Wort endet hier auf <b>i</b></p>
+<h1>🔤 I-Wort-Umformer</h1>
+<p>Alle Wörter enden hier auf <b>i</b></p>
 
-  <input id="word" placeholder="Wort eingeben">
-  <button onclick="convert()">Umformen</button>
+<input id="word" placeholder="Wort eingeben">
+<br>
 
-  <div class="result" id="result"></div>
-  <div class="rule" id="rule"></div>
+<button onclick="convert()">Umformen</button>
+<button onclick="pasteFromClipboard()">📥 Paste</button>
+<button onclick="copyResult()">📋 Copy</button>
 
-  <script>
-    function convert() {
-      let w = document.getElementById("word").value.trim();
-      if (!w) return;
+<div class="result" id="result"></div>
 
-      let lower = w.toLowerCase();
-      let rule = "";
+<div class="history">
+  <h3>🕘 Verlauf</h3>
+  <ul id="history"></ul>
+  <button onclick="clearHistory()">🗑 Verlauf löschen</button>
+</div>
 
-      if (lower.endsWith("i")) {
-        rule = "Wort endet bereits auf i";
-      }
-      else if (lower.endsWith("er") || lower.endsWith("en") || lower.endsWith("el")) {
-        w = w.slice(0, -2) + "i";
-        rule = "Endung entfernt → i";
-      }
-      else if (lower.endsWith("e")) {
-        w = w.slice(0, -1) + "i";
-        rule = "e → i";
-      }
-      else if (/[aeiouäöü]$/.test(lower)) {
-        w = w.slice(0, -1) + "i";
-        rule = "Vokal → i";
-      }
-      else {
-        w += "i";
-        rule = "i angehängt";
-      }
+<script>
+  const input = document.getElementById("word");
+  const resultDiv = document.getElementById("result");
+  const historyList = document.getElementById("history");
 
-      document.getElementById("result").textContent = w;
-      document.getElementById("rule").textContent = rule;
-    }
-  </script>
+  let history = JSON.parse(localStorage.getItem("history") || "[]");
+
+  function transform(w) {
+    const lower = w.toLowerCase();
+
+    if (lower.endsWith("i")) return w;
+    if (lower.endsWith("er") || lower.endsWith("en") || lower.endsWith("el"))
+      return w.slice(0, -2) + "i";
+    if (lower.endsWith("e"))
+      return w.slice(0, -1) + "i";
+    if (/[aeiouäöü]$/.test(lower))
+      return w.slice(0, -1) + "i";
+    return w + "i";
+  }
+
+  function convert() {
+    let w = input.value.trim();
+    if (!w) return;
+
+    const converted = transform(w);
+    resultDiv.textContent = converted;
+
+    history.unshift(`${w} → ${converted}`);
+    history = history.slice(0, 20);
+
+    localStorage.setItem("history", JSON.stringify(history));
+    renderHistory();
+  }
+
+  function renderHistory() {
+    historyList.innerHTML = "";
+    history.forEach(item => {
+      const li = document.createElement("li");
+      li.textContent = item;
+      historyList.appendChild(li);
+    });
+  }
+
+  function clearHistory() {
+    history = [];
+    localStorage.removeItem("history");
+    renderHistory();
+  }
+
+  function copyResult() {
+    if (!resultDiv.textContent) return;
+    navigator.clipboard.writeText(resultDiv.textContent);
+  }
+
+  async function pasteFromClipboard() {
+    const text = await navigator.clipboard.readText();
+    input.value = text;
+  }
+
+  // Enter-Taste
+  input.addEventListener("keydown", e => {
+    if (e.key === "Enter") convert();
+  });
+
+  renderHistory();
+</script>
 
 </body>
 </html>
