@@ -1,1 +1,1 @@
-Please visit the GUI at <a href="bauprofi278.githup.io/Woerterbuch">bauprofi278.githup.io/Woerterbuch</a>
+Please visit the GUI at <a href="bauprofi278.github.io/Woerterbuch">bauprofi278.github.io/Woerterbuch</a>
